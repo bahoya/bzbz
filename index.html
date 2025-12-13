@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BZT BZT</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <canvas id="gameCanvas"></canvas>
+
+    <div id="ui-layer">
+        <div id="hud" class="hidden">
+            <div class="health-container">
+                <div id="health-bar-container">
+                    <div id="health-bar"></div>
+                </div>
+
+                <div id="skill-container">
+                    <div class="skill-card" id="skill-smell">
+                        <div class="skill-icon">🦶</div>
+                        <div class="skill-info">
+                            <span class="skill-name">Koku</span>
+                            <span class="skill-cost" id="cost-smell">0/3</span>
+                        </div>
+                    </div>
+                    <div class="skill-card" id="skill-whip">
+                        <div class="skill-icon">➰</div>
+                        <div class="skill-info">
+                            <span class="skill-name">Kemer</span>
+                            <span class="skill-cost" id="cost-whip">0/5</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stats-container">
+                <div id="score">Puan: 0</div>
+                <div id="wave">Dalga: 1</div>
+                <div id="timer">Süre: 30</div>
+            </div>
+        </div>
+
+        <div id="wave-announcement">DALGA 1</div>
+
+        <div id="start-screen" class="menu glass">
+            <h1>BZT BZT</h1>
+
+            <div id="character-selection">
+                <button id="char-prev" class="selector-btn">◄</button>
+                <div id="char-display">
+                    <img id="char-image" src="" alt="Character">
+                    <h2 id="char-name">Ömer</h2>
+                </div>
+                <button id="char-next" class="selector-btn">►</button>
+            </div>
+
+            <div id="volume-control">
+                <label for="music-volume">Müzik Sesi: <span id="volume-value">10%</span></label>
+                <input type="range" id="music-volume" min="0" max="1" step="0.1" value="0.1">
+            </div>
+
+            <button id="settings-btn" class="secondary-btn">Tuş Ayarları</button>
+
+            <!-- Settings Modal -->
+            <div id="settings-modal" class="modal hidden">
+                <div class="modal-content glass-panel">
+                    <h3>Tuş Ayarları</h3>
+                    <div class="binding-row">
+                        <span>Balta:</span>
+                        <button class="bind-btn" data-action="axe">Q</button>
+                    </div>
+                    <div class="binding-row">
+                        <span>Koku:</span>
+                        <button class="bind-btn" data-action="smell">E</button>
+                    </div>
+                    <div class="binding-row">
+                        <span>Kemer:</span>
+                        <button class="bind-btn" data-action="whip">R</button>
+                    </div>
+                    <div class="binding-row">
+                        <span>Zoom:</span>
+                        <button class="bind-btn" data-action="zoom">Sağ Tık</button>
+                    </div>
+                    <button id="close-settings-btn" class="close-btn">Kapat</button>
+                </div>
+            </div>
+
+            <button id="start-btn">Oyuna Başla</button>
+        </div>
+
+        <div id="game-over-screen" class="menu glass hidden">
+            <h1>Oyun Bitti</h1>
+            <p id="final-score">Puan: 0</p>
+            <p id="final-wave">Dalga: 1</p>
+            <button id="restart-btn">Yeniden Başla</button>
+        </div>
+    </div>
+
+    <script src="js/Utils.js"></script>
+    <script src="js/SoundManager.js"></script>
+    <script src="js/Drop.js"></script>
+    <script src="js/Axe.js"></script>
+    <script src="js/Whip.js"></script>
+    <script src="js/Smoke.js"></script>
+    <script src="js/Player.js"></script>
+    <script src="js/Camera.js"></script>
+    <script src="js/Obstacle.js"></script>
+    <script src="js/Enemy.js"></script>
+    <script src="js/UI.js"></script>
+    <script src="js/Grid.js"></script>
+    <script src="js/MobileControls.js"></script>
+    <script src="js/Game.js"></script>
+    <script src="js/main.js"></script>
+    <div id="portrait-warning">
+        <h1>Lütfen Telefonu Yan Çevirin</h1>
+        <p>Bu oyun sadece yatay modda oynanabilir.</p>
+    </div>
+</body>
+
+</html>

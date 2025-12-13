@@ -354,7 +354,7 @@ class Game {
                     const eCy = entity.y + entity.height / 2;
                     const dist = Math.hypot(smoke.x - eCx, smoke.y - eCy);
                     if (dist < smoke.radius + entity.radius) {
-                        entity.health -= 7 * (deltaTime / 1000); // DOT Reduced (was 10)
+                        entity.health -= 13 * (deltaTime / 1000); // DOT Increased by 50% more (was 9)
                         if (entity.health <= 0 && !entity.markedForDeletion) {
                             entity.markedForDeletion = true;
                             this.score += 10;

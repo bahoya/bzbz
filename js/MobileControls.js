@@ -212,6 +212,11 @@ class MobileControls {
                 skill.active = true;
                 skill.base.classList.add('active'); // Visual feedback
 
+                // Track for tap detection
+                skill.startTime = Date.now();
+                skill.startX = touch.clientX;
+                skill.startY = touch.clientY;
+
                 // Show joystick/indicator
                 skill.stick.classList.remove('hidden');
                 skill.indicator.classList.remove('hidden');
@@ -240,30 +245,16 @@ class MobileControls {
                 for (let i = 0; i < e.changedTouches.length; i++) {
                     if (e.changedTouches[i].identifier === skill.touchId) {
 
-                        let isTap = false;
-                        // Simple tap detection: if movement was very small
-                        if (Math.abs(skill.data.x) < 0.1 && Math.abs(skill.data.y) < 0.1) {
-                            isTap = true;
-                        }
+                        // Better tap detection
+                        const duration = Date.now() - skill.startTime;
+                        const touch = e.changedTouches[i];
+                        const distance = Math.hypot(touch.clientX - skill.startX, touch.clientY - skill.startY);
+                        const isTap = (duration < 200 && distance < 20); // Quick tap, small movement
 
                         if (key === 'q') {
                             // Axe Logic
                             if (isTap) {
-                                // FIRE BURST using *current* aim (stored in joystick visual rotation or data?)
-                                // Wait, simple tap means data.x/y is ~0.
-                                // We need Persistent Aim.
-                                // Let's store `lastAimX`, `lastAimY` on the skill object?
-                                // Or rely on the visual stick position if we didn't reset it?
-                                // Currently updateSkillJoy updates `skill.data`.
-                                // If we dragged, `skill.data` has values.
-                                // If we tap, `skill.data` is Reset? No, touchstart resets?
-                                // We need to NOT reset on touchstart if Q?
-                                // User: "ok hala gözükecek" (arrow still visible).
-                                // So we should NOT hide indicator on end.
-
-                                // Actually, if we Tap, we want to fire.
-                                // If we Drag, we just update aim.
-
+                                // FIRE BURST using stored aim
                                 if (skill.lastAimAngle !== undefined) {
                                     this.game.burstThrow(skill.lastAimAngle);
                                 } else {
@@ -271,19 +262,12 @@ class MobileControls {
                                     this.game.burstThrow(0);
                                 }
                             } else {
-                                // Was a Drag. Just update stored aim.
-                                // Angle is already calculated in move. 
-                                // We need to store it.
+                                // Was a Drag. Store the aim angle.
                                 const angle = Math.atan2(skill.data.y, skill.data.x);
                                 skill.lastAimAngle = angle;
                             }
 
-                            // VISUALS: For Q, we DO NOT RESET if it was a drag (or ever?)
-                            // "ok hala gözükecek" -> Persistent.
-                            // So we never hide Q's indicator unless... ?
-                            // Maybe start hides it? No, start shows it.
-                            // We just don't call the reset block below for Q.
-
+                            // Keep indicator visible for Q
                             skill.active = false;
                             skill.base.classList.remove('active');
                             skill.touchId = null;

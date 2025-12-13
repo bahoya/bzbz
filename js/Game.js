@@ -151,7 +151,7 @@ class Game {
     }
 
     gameOver() {
-        this.soundManager.play('playerDeath');
+        this.soundManager.play('playerolum');
         this.gameState = 'GAME_OVER';
         this.ui.showGameOverScreen();
     }

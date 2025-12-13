@@ -8,6 +8,7 @@ class SoundManager {
             { name: 'throw', src: 'assets/tekbzt.WAV', volume: 0.2 },
             { name: 'enemyDeath', src: 'assets/dusmanolmesi.WAV', volume: 0.6 },
             { name: 'playerDeath', src: 'assets/omerolum.WAV', volume: 1.0 },
+            { name: 'playerolum', src: 'assets/playerolum.WAV', volume: 0.8 }, // Player death sound
             { name: 'omerolum', src: 'assets/omerolum.WAV', volume: 0.6 }, // Specific enemy omer sound
             { name: 'ulti', src: 'assets/ulti.WAV', volume: 1.0 },
             { name: 'music', src: 'assets/music.mp3', volume: 0.1, loop: true },

@@ -245,38 +245,27 @@ class MobileControls {
                 for (let i = 0; i < e.changedTouches.length; i++) {
                     if (e.changedTouches[i].identifier === skill.touchId) {
 
-                        // Better tap detection
-                        const duration = Date.now() - skill.startTime;
-                        const touch = e.changedTouches[i];
-                        const distance = Math.hypot(touch.clientX - skill.startX, touch.clientY - skill.startY);
-                        const isTap = (duration < 200 && distance < 20); // Quick tap, small movement
-
                         if (key === 'q') {
-                            // Axe Logic
-                            if (isTap) {
-                                // FIRE BURST using stored aim
-                                if (skill.lastAimAngle !== undefined) {
-                                    this.game.burstThrow(skill.lastAimAngle);
-                                } else {
-                                    // Default aim right
-                                    this.game.burstThrow(0);
-                                }
-                            } else {
-                                // Was a Drag. Store the aim angle.
+                            // Fire 5 axes in the drag direction
+                            if (Math.abs(skill.data.x) > 0.05 || Math.abs(skill.data.y) > 0.05) {
                                 const angle = Math.atan2(skill.data.y, skill.data.x);
-                                skill.lastAimAngle = angle;
+                                // Fire 5 axes rapidly
+                                this.fireBurstAxes(angle, 5);
                             }
 
-                            // Keep indicator visible for Q
+                            // Reset Q visuals
                             skill.active = false;
                             skill.base.classList.remove('active');
                             skill.touchId = null;
-                            // Do NOT reset stick/indicator/data for Q
+                            skill.stick.classList.add('hidden');
+                            skill.indicator.classList.add('hidden');
+                            skill.data.x = 0;
+                            skill.data.y = 0;
                         } else {
-                            // Standard behavior for others (R, E is instant anyway)
+                            // Standard behavior for R
                             if (Math.abs(skill.data.x) > 0.1 || Math.abs(skill.data.y) > 0.1) {
                                 this.triggerSkill(key, skill.data.x, skill.data.y);
-                            } else if (key !== 'e') { // E is handled in start
+                            } else if (key !== 'e') {
                                 this.triggerSkill(key, 0, 0);
                             }
 
@@ -421,5 +410,20 @@ class MobileControls {
 
     hide() {
         this.container.classList.add('hidden');
+    }
+
+    async fireBurstAxes(angle, count) {
+        // Fire multiple axes rapidly in the given direction
+        const delay = 80; // ms between shots
+        for (let i = 0; i < count; i++) {
+            const startX = this.game.player.x + this.game.player.width / 2;
+            const startY = this.game.player.y + this.game.player.height / 2;
+            const targetX = startX + Math.cos(angle) * 1000;
+            const targetY = startY + Math.sin(angle) * 1000;
+            this.game.throwAxe(targetX, targetY);
+            if (i < count - 1) {
+                await new Promise(r => setTimeout(r, delay));
+            }
+        }
     }
 }

@@ -182,6 +182,7 @@ class UI {
         this.startScreen.classList.remove('hidden');
         this.gameOverScreen.classList.add('hidden');
         this.hud.classList.add('hidden');
+        document.body.classList.add('in-menu');
     }
 
     showGameOverScreen() {
@@ -190,12 +191,14 @@ class UI {
         this.hud.classList.add('hidden');
         this.finalScoreEl.innerText = `Puan: ${this.game.score}`;
         this.finalWaveEl.innerText = `Dalga: ${this.game.wave}`;
+        document.body.classList.add('in-menu');
     }
 
     showHUD() {
         this.startScreen.classList.add('hidden');
         this.gameOverScreen.classList.add('hidden');
         this.hud.classList.remove('hidden');
+        document.body.classList.remove('in-menu');
     }
 
     showWaveAnnouncement(wave) {

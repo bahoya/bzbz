@@ -53,6 +53,8 @@ canvas {
     max-height: 90vh;
     overflow-y: auto;
     overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
 }
 
 .menu.glass {
@@ -792,4 +794,10 @@ input:checked+.slider:before {
     z-index: 5;
     /* Rotation logic in JS assumes pointing right is 0 rad? */
     /* If arrow points LEFT by default with border-left, 0 deg = pointing right */
+}
+
+/* Hide mobile controls when in menu */
+body.in-menu #mobile-controls {
+    display: none !important;
+    visibility: hidden !important;
 }

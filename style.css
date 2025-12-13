@@ -42,19 +42,21 @@ canvas {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    padding: 3rem;
+    padding: 1.5rem;
     border-radius: 1.5rem;
     text-align: center;
     pointer-events: auto;
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
+    gap: 1rem;
     color: #fff;
+    max-height: 90vh;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .menu.glass {
     background: rgba(0, 0, 0, 0.85);
-    /* Darker for better contrast with new UI */
 }
 
 /* Character Selection */
@@ -62,8 +64,8 @@ canvas {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 20px;
-    margin-bottom: 10px;
+    gap: 10px;
+    margin-bottom: 5px;
 }
 
 #char-display {
@@ -73,18 +75,18 @@ canvas {
 }
 
 #char-image {
-    width: 80px;
-    height: 80px;
+    width: 60px;
+    height: 60px;
     object-fit: contain;
     border: 2px solid rgba(255, 255, 255, 0.2);
     border-radius: 10px;
     background: rgba(255, 255, 255, 0.1);
-    margin-bottom: 5px;
+    margin-bottom: 3px;
 }
 
 #char-name {
     margin: 0;
-    font-size: 1.5rem;
+    font-size: 1.1rem;
     color: #ffd700;
 }
 
@@ -260,15 +262,16 @@ input[type=range]::-webkit-slider-thumb {
 }
 
 h1 {
-    font-size: 4rem;
+    font-size: 2.5rem;
     color: #ff5e57;
     text-shadow: 0 0 10px rgba(255, 94, 87, 0.5);
     font-weight: 800;
+    margin: 0;
 }
 
 button {
-    padding: 1rem 3rem;
-    font-size: 1.2rem;
+    padding: 0.7rem 2rem;
+    font-size: 1rem;
     font-weight: bold;
     background: linear-gradient(135deg, #ff5e57, #ff3f34);
     color: white;

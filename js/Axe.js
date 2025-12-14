@@ -1,5 +1,5 @@
 class Axe {
-    constructor(game, x, y, targetX, targetY) {
+    constructor(game, x, y, targetX, targetY, type = 'axe') {
         this.game = game;
         this.x = x;
         this.y = y;
@@ -10,6 +10,7 @@ class Axe {
         this.rotation = 0;
         this.markedForDeletion = false;
         this.lifeTimer = 1.0; // Seconds
+        this.type = type;
 
         const dx = targetX - x;
         const dy = targetY - y;
@@ -23,7 +24,11 @@ class Axe {
         }
 
         this.image = new Image();
-        this.image.src = getAsset('assets/axe.png');
+        if (this.type === 'axe') {
+            this.image.src = getAsset('assets/axe.png');
+        } else if (this.type === 'mayonez') {
+            this.image.src = getAsset('assets/mayonez.png');
+        }
     }
 
     update(deltaTime) {

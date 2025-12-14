@@ -420,7 +420,9 @@ class MobileControls {
             const startY = this.game.player.y + this.game.player.height / 2;
             const targetX = startX + Math.cos(angle) * 1000;
             const targetY = startY + Math.sin(angle) * 1000;
-            this.game.throwAxe(targetX, targetY);
+
+            const type = (this.game.player.type === 'thr') ? 'mayonez' : 'axe';
+            this.game.throwProjectile(targetX, targetY, type);
             if (i < count - 1) {
                 await new Promise(r => setTimeout(r, delay));
             }

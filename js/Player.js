@@ -29,6 +29,10 @@ class Player {
         this.killCount = 0; // Shared resource for skills
         this.maxKillCount = 5;
 
+        // Skill Modifiers
+        this.speedMultiplier = 1;
+        this.isInvulnerable = false; // For Thr's E
+
         // Foot Smell Ability
         this.footSmellActive = false;
         this.footSmellDuration = 3;
@@ -37,10 +41,6 @@ class Player {
     }
 
     updateAmmo(deltaTime) {
-        // Removed
-    }
-
-    refillAmmo() {
         // Removed
     }
 
@@ -67,9 +67,20 @@ class Player {
         this.footSmellTimer = this.footSmellDuration;
     }
 
+    activateSpeedBoost(duration) {
+        this.speedMultiplier = 2; // Double speed
+        this.isInvulnerable = true;
+        setTimeout(() => {
+            this.speedMultiplier = 1;
+            this.isInvulnerable = false;
+        }, duration * 1000);
+    }
+
     resetResources() {
         this.killCount = 0;
         this.footSmellActive = false;
+        this.speedMultiplier = 1;
+        this.isInvulnerable = false;
     }
 
     update(input, deltaTime) {
@@ -108,8 +119,8 @@ class Player {
                 dy /= dist;
             }
 
-            this.x += dx * this.speed * deltaTime;
-            this.y += dy * this.speed * deltaTime;
+            this.x += dx * this.speed * this.speedMultiplier * deltaTime;
+            this.y += dy * this.speed * this.speedMultiplier * deltaTime;
         }
 
         // World Boundaries

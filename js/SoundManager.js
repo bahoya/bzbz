@@ -18,7 +18,8 @@ class SoundManager {
             { name: 'bahoolum', src: 'assets/bahoolum.WAV', volume: 0.6 },
             { name: 'aliolum', src: 'assets/aliolum.WAV', volume: 0.8 },
             { name: 'alikolum', src: 'assets/alikolum.WAV', volume: 1 },
-            { name: 'duman', src: 'assets/duman.WAV', volume: 0.5 }
+            { name: 'duman', src: 'assets/duman.WAV', volume: 0.5 },
+            { name: 'thrulti', src: 'assets/thrulti.WAV', volume: 1.0 }
         ];
 
         soundFiles.forEach(s => {

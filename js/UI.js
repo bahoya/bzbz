@@ -199,6 +199,28 @@ class UI {
         this.gameOverScreen.classList.add('hidden');
         this.hud.classList.remove('hidden');
         document.body.classList.remove('in-menu');
+        this.updateSkillIcons(); // Update icons based on character
+    }
+
+    updateSkillIcons() {
+        const type = this.game.player.type;
+        const smellName = this.smellCard.querySelector('.skill-name');
+        const smellIcon = this.smellCard.querySelector('.skill-icon');
+        const whipName = this.whipCard.querySelector('.skill-name');
+        const whipIcon = this.whipCard.querySelector('.skill-icon');
+
+        if (type === 'thr') {
+            smellName.innerText = "HIZ (E)";
+            smellIcon.innerText = "⚡";
+            whipName.innerText = "KLON (R)";
+            whipIcon.innerText = "👥";
+        } else {
+            // Default Omer
+            smellName.innerText = "KOKU (E)";
+            smellIcon.innerText = "🦶";
+            whipName.innerText = "KEMER (R)";
+            whipIcon.innerText = "➰";
+        }
     }
 
     showWaveAnnouncement(wave) {

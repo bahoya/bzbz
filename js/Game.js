@@ -28,6 +28,7 @@ class Game {
         this.mobileControls = new MobileControls(this);
 
         this.input = { keys: [], mouseX: 0, mouseY: 0 };
+        this.clones = []; // For Thr's skill
         // ... (rest of constructor)
 
         // In start():
@@ -60,22 +61,20 @@ class Game {
             if (key === bindings.axe && this.gameState === 'PLAYING') {
                 const worldX = (this.input.mouseX / this.zoom) + this.camera.x;
                 const worldY = (this.input.mouseY / this.zoom) + this.camera.y;
-                this.throwAxe(worldX, worldY);
+
+                // Determine type based on player character
+                const type = (this.player.type === 'thr') ? 'mayonez' : 'axe';
+                this.throwProjectile(worldX, worldY, type);
             }
 
             if (key === bindings.whip && this.gameState === 'PLAYING') {
-                if (this.player.useSkill(5) && !this.whip.active) {
-                    const worldX = (this.input.mouseX / this.zoom) + this.camera.x;
-                    const worldY = (this.input.mouseY / this.zoom) + this.camera.y;
-                    this.whip.activate(worldX, worldY);
-                }
+                const worldX = (this.input.mouseX / this.zoom) + this.camera.x;
+                const worldY = (this.input.mouseY / this.zoom) + this.camera.y;
+                this.triggerSkill('r', worldX, worldY);
             }
 
             if (key === bindings.smell && this.gameState === 'PLAYING') {
-                if (this.player.useSkill(3)) {
-                    this.player.activateFootSmell();
-                    this.soundManager.play('duman');
-                }
+                this.triggerSkill('e');
             }
         });
 
@@ -189,30 +188,140 @@ class Game {
     }
 
     throwAxe(targetX, targetY) {
-        // Infinite Ammo
-        this.axes.push(new Axe(this, this.player.x + this.player.width / 2, this.player.y + this.player.height / 2, targetX, targetY));
-        this.soundManager.play('throw');
+        // Alias for compatibility
+        this.throwProjectile(targetX, targetY, 'axe');
+    }
+
+    throwProjectile(targetX, targetY, type = 'axe') {
+        this.axes.push(new Axe(this, this.player.x + this.player.width / 2, this.player.y + this.player.height / 2, targetX, targetY, type));
+        if (type === 'axe') this.soundManager.play('throw');
+        else if (type === 'mayonez') this.soundManager.play('throw'); // Reuse throw sound or add new?
+    }
+
+    triggerSkill(action, aimX, aimY) {
+        const type = this.player.type;
+
+        // Q - Primary Attack (Often handled via click/tap directly, but here for completeness)
+        // Usually Q is burst/special in this game's context? No, Q is "axe".
+        if (action === 'q') {
+            if (type === 'thr') {
+                // Thr Q: Mayonez Burst? Or Single?
+                // Current system for Q is "Burst Throw" via MobileControls.
+                // Let's assume standard behavior is handled by inputs calling throwProjectile/burstThrow.
+                // If we need character specific "Q" logic, we do it here.
+                // MobileControls calls `fireBurstAxes`. We need to update that to support types.
+            }
+        }
+
+        // E - Secondary Skill
+        if (action === 'e') {
+            if (type === 'omer') {
+                if (this.player.useSkill(3)) {
+                    this.player.activateFootSmell();
+                    this.soundManager.play('duman');
+                }
+            } else if (type === 'thr') {
+                if (this.player.useSkill(3)) {
+                    this.player.activateSpeedBoost(3);
+                    // Add sound for speed?
+                }
+            }
+        }
+
+        // R - Ultimate / Special
+        if (action === 'r') {
+            if (type === 'omer') {
+                if (this.player.useSkill(5) && !this.whip.active) {
+                    // Start whip at aim or player center
+                    // Whip code expects targetX/Y for activation? 
+                    // Actually MobileControls passes targetX/Y.
+                    this.whip.activate(aimX, aimY);
+                }
+            } else if (type === 'thr') {
+                if (this.player.useSkill(5)) {
+                    this.spawnClones();
+                }
+            }
+        }
+    }
+
+    spawnClones() {
+        this.soundManager.play('thrulti');
+        // Spawn 3 clones around player
+        for (let i = 0; i < 3; i++) {
+            const angle = (i * (2 * Math.PI / 3));
+            const dist = 60;
+            this.clones.push({
+                x: this.player.x + Math.cos(angle) * dist,
+                y: this.player.y + Math.sin(angle) * dist,
+                angle: angle,
+                timer: 5, // Lifetime
+                shootTimer: 0,
+                type: 'thr'
+            });
+        }
+    }
+
+    updateClones(deltaTime) {
+        for (let i = this.clones.length - 1; i >= 0; i--) {
+            const clone = this.clones[i];
+            clone.timer -= deltaTime;
+
+            // Follow player with rotation offset
+            clone.angle += deltaTime; // Rotate around player
+            const dist = 60;
+            clone.x = this.player.x + Math.cos(clone.angle) * dist;
+            clone.y = this.player.y + Math.sin(clone.angle) * dist;
+
+            // Shooting Logic
+            clone.shootTimer += deltaTime;
+            if (clone.shootTimer >= 0.2) {
+                clone.shootTimer = 0;
+                // Find nearest enemy
+                let nearest = null;
+                let minDst = Infinity;
+                this.enemies.forEach(e => {
+                    const d = Math.hypot(e.x - clone.x, e.y - clone.y);
+                    if (d < minDst) {
+                        minDst = d;
+                        nearest = e;
+                    }
+                });
+
+                if (nearest && minDst < 800) {
+                    // Shoot mayonez from clone position
+                    this.axes.push(new Axe(this, clone.x + 32, clone.y + 32, nearest.x + 32, nearest.y + 32, 'mayonez'));
+                    // Sound? Maybe quiet throw
+                }
+            }
+
+            if (clone.timer <= 0) {
+                this.clones.splice(i, 1);
+            }
+        }
+    }
+
+    drawClones(ctx) {
+        // We need Thr image asset reference. Using player image if type is thr.
+        // Or load a specific one.
+        const img = this.player.image; // Since we are Thr
+        this.clones.forEach(clone => {
+            ctx.save();
+            ctx.globalAlpha = 0.7; // Ghostly
+            ctx.drawImage(img, clone.x, clone.y, 64, 64);
+            ctx.restore();
+        });
     }
 
     mobileInput(action, angle) {
         if (this.gameState !== 'PLAYING') return;
 
-        if (action === 'q') {
-            // Mapping Q for mobile if needed, but we have burstThrow
-        } else if (action === 'e') { // Smell
-            if (this.keyBindings.smell && this.player.useSkill(3)) {
-                this.player.activateFootSmell();
-                this.soundManager.play('duman');
-            }
-        } else if (action === 'r') { // Whip
-            if (this.player.useSkill(5) && !this.whip.active) {
-                // Calc target from angle
-                const dist = 100;
-                const targetX = this.player.x + this.player.width / 2 + Math.cos(angle) * dist;
-                const targetY = this.player.y + this.player.height / 2 + Math.sin(angle) * dist;
-                this.whip.activate(targetX, targetY);
-            }
-        }
+        // Calc target from angle (for R/Whip or future aiming)
+        const dist = 200;
+        const targetX = this.player.x + this.player.width / 2 + Math.cos(angle) * dist;
+        const targetY = this.player.y + this.player.height / 2 + Math.sin(angle) * dist;
+
+        this.triggerSkill(action, targetX, targetY);
     }
 
     update(deltaTime) {
@@ -270,11 +379,13 @@ class Game {
         this.axes.forEach(axe => axe.update(deltaTime / 1000));
         this.whip.update(); // Update Whip
         this.smokes.forEach(smoke => smoke.update(deltaTime / 1000));
+        this.updateClones(deltaTime / 1000); // Clones
 
         this.axes = this.axes.filter(axe => !axe.markedForDeletion);
         this.enemies = this.enemies.filter(enemy => !enemy.markedForDeletion);
         this.drops = this.drops.filter(drop => !drop.markedForDeletion);
         this.smokes = this.smokes.filter(smoke => !smoke.markedForDeletion);
+        // Clean clones handled in updateClones
 
         this.checkCollisions(deltaTime);
         this.ui.update();
@@ -375,6 +486,7 @@ class Game {
         const playerPotentials = this.grid.retrieve(this.player);
         playerPotentials.forEach(entity => {
             if (entity instanceof Enemy) {
+                if (this.player.isInvulnerable) return; // Thr's Speed Boost
                 const eCx = entity.x + entity.width / 2;
                 const eCy = entity.y + entity.height / 2;
                 const dist = Math.hypot(pCx - eCx, pCy - eCy);
@@ -510,6 +622,7 @@ class Game {
             this.drops.forEach(drop => drop.draw(this.ctx));
             this.smokes.forEach(smoke => smoke.draw(this.ctx));
             this.player.draw(this.ctx);
+            this.drawClones(this.ctx); // Clones
             this.whip.draw(this.ctx);
             this.enemies.forEach(enemy => enemy.draw(this.ctx));
             this.axes.forEach(axe => axe.draw(this.ctx));

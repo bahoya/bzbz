@@ -86,16 +86,7 @@ class Game {
             if (key === bindings.axe && this.gameState === 'PLAYING') {
                 const worldX = (this.input.mouseX / this.zoom) + this.camera.x;
                 const worldY = (this.input.mouseY / this.zoom) + this.camera.y;
-
-                // Determine type based on player character
-                let type = 'axe';
-                if (this.player.type === 'thr') type = 'mayonez';
-                else if (this.player.type === 'alik') type = 'oncu';
-                else if (this.player.type === 'efe') type = 'top';
-                else if (this.player.type === 'baho') type = 'fuze';
-                else if (this.player.type === 'ali') type = 'rf';
-                else if (this.player.type === 'dgkn') type = 'ziraat';
-
+                const type = this.getProjectileType();
                 this.throwProjectile(worldX, worldY, type);
             }
 
@@ -134,13 +125,7 @@ class Game {
             const worldY = (e.clientY / this.zoom) + this.camera.y;
 
             if (key === bindings.axe) {
-                let type = 'axe';
-                if (this.player.type === 'thr') type = 'mayonez';
-                else if (this.player.type === 'alik') type = 'oncu';
-                else if (this.player.type === 'efe') type = 'top';
-                else if (this.player.type === 'baho') type = 'fuze';
-                else if (this.player.type === 'ali') type = 'rf';
-                else if (this.player.type === 'dgkn') type = 'ziraat';
+                const type = this.getProjectileType();
                 this.throwProjectile(worldX, worldY, type);
             }
 
@@ -203,6 +188,18 @@ class Game {
 
     setSelectedCharacter(charName) {
         this.selectedCharacter = charName;
+    }
+
+    getProjectileType() {
+        if (!this.player) return 'axe';
+        const t = this.player.type;
+        if (t === 'thr') return 'mayonez';
+        if (t === 'alik') return 'oncu';
+        if (t === 'efe') return 'top';
+        if (t === 'baho') return 'fuze';
+        if (t === 'ali') return 'rf';
+        if (t === 'dgkn') return 'ziraat';
+        return 'axe';
     }
 
     generateObstacles() {

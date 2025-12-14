@@ -346,19 +346,16 @@ class MobileControls {
         if (!this.game || this.game.gameState !== 'PLAYING') return;
 
         if (key === 'q') {
-            // Axe
-            // If dirX/Y is 0 (tap), use Persistent Aim or default
+            // Axe / Projectile
             let targetX, targetY;
             const skill = this.skills[key];
 
             if (dirX === 0 && dirY === 0) {
-                // Tap
+                // Tap: Use Persistent Aim or default
                 if (skill.lastAimAngle !== undefined) {
-                    // Use Persistent Aim
                     targetX = this.game.player.x + this.game.player.width / 2 + Math.cos(skill.lastAimAngle) * 500;
                     targetY = this.game.player.y + this.game.player.height / 2 + Math.sin(skill.lastAimAngle) * 500;
                 } else {
-                    // Default right
                     targetX = this.game.player.x + 500;
                     targetY = this.game.player.y;
                 }
@@ -367,33 +364,33 @@ class MobileControls {
                 targetY = this.game.player.y + dirY * 300;
             }
 
-            this.game.throwAxe(targetX, targetY);
+            const type = this.game.getProjectileType();
+            this.game.throwProjectile(targetX, targetY, type);
 
         } else if (key === 'e') {
-            // Smoke (Instant)
-            if (this.game.player.useSkill(3)) {
-                this.game.player.activateFootSmell();
-                this.game.soundManager.play('duman');
-            }
+            // E Skill: Delegate to Game Logic
+            this.game.triggerSkill('e');
 
         } else if (key === 'r') {
-            // Whip
-            if (this.game.player.useSkill(5) && !this.game.whip.active) {
-                let targetX, targetY;
-                if (dirX === 0 && dirY === 0) {
-                    if (this.moveJoy.data.active) {
-                        targetX = this.game.player.x + this.moveJoy.data.x * 200;
-                        targetY = this.game.player.y + this.moveJoy.data.y * 200;
-                    } else {
-                        targetX = this.game.player.x + 200;
-                        targetY = this.game.player.y;
-                    }
+            // R Skill: Delegate to Game Logic
+            // Calculate aim if directional
+            let targetX, targetY;
+
+            // Should pass aim to triggerSkill
+            if (dirX === 0 && dirY === 0) {
+                if (this.moveJoy.data.active) {
+                    targetX = this.game.player.x + this.moveJoy.data.x * 200;
+                    targetY = this.game.player.y + this.moveJoy.data.y * 200;
                 } else {
-                    targetX = this.game.player.x + dirX * 300;
-                    targetY = this.game.player.y + dirY * 300;
+                    targetX = this.game.player.x + 200;
+                    targetY = this.game.player.y;
                 }
-                this.game.whip.activate(targetX, targetY);
+            } else {
+                targetX = this.game.player.x + dirX * 300;
+                targetY = this.game.player.y + dirY * 300;
             }
+
+            this.game.triggerSkill('r', targetX, targetY);
         }
     }
 
@@ -421,11 +418,10 @@ class MobileControls {
             const targetX = startX + Math.cos(angle) * 1000;
             const targetY = startY + Math.sin(angle) * 1000;
 
-            let type = 'axe';
-            if (this.game.player.type === 'thr') type = 'mayonez';
-            else if (this.game.player.type === 'alik') type = 'oncu';
+            const type = this.game.getProjectileType();
 
-            this.game.throwProjectile(targetX, targetY, type);
+            this.game.throwProjectile(targetX, targetY, type, null, true); // true = bypass cooldown
+
             if (i < count - 1) {
                 await new Promise(r => setTimeout(r, delay));
             }

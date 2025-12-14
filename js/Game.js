@@ -53,7 +53,8 @@ class Game {
         this.cigaretteVisualTimer = 0;
         this.sigaraImage = new Image();
         this.sigaraImage.src = getAsset('assets/sigara.png');
-        // ... (rest of constructor)
+
+        this.lastQFireTime = 0; // Cooldown tracker
 
         // In start():
         this.mobileControls.show();
@@ -247,7 +248,7 @@ class Game {
             const targetX = startX + Math.cos(angle) * 1000;
             const targetY = startY + Math.sin(angle) * 1000;
 
-            this.throwAxe(targetX, targetY);
+            this.throwProjectile(targetX, targetY, 'axe', null, true); // true = bypass cooldown
             await new Promise(r => setTimeout(r, delay));
         }
     }
@@ -257,7 +258,15 @@ class Game {
         this.throwProjectile(targetX, targetY, 'axe');
     }
 
-    throwProjectile(targetX, targetY, type = 'axe', damage = null) {
+    throwProjectile(targetX, targetY, type = 'axe', damage = null, ignoreCooldown = false) {
+        // Cooldown Logic
+        if (!ignoreCooldown) {
+            // Limits manual firing to 10 times per second (100ms)
+            const now = Date.now();
+            if (now - this.lastQFireTime < 100) return;
+            this.lastQFireTime = now;
+        }
+
         this.axes.push(new Axe(this, this.player.x + this.player.width / 2, this.player.y + this.player.height / 2, targetX, targetY, type, damage));
         if (type === 'axe' || type === 'fuze') this.soundManager.play('throw');
         else if (type === 'mayonez') this.soundManager.play('throw');

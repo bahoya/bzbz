@@ -148,14 +148,33 @@ class UI {
         this.smellCost = document.getElementById('cost-smell');
         this.whipCost = document.getElementById('cost-whip');
 
-        // Leaderboard Elements
+        // Leaderboard Elements (Game Over)
         this.nameInput = document.getElementById('player-name-input');
         this.submitBtn = document.getElementById('submit-score-btn');
         this.leaderboardContainer = document.getElementById('leaderboard-table-container');
         this.submitStatus = document.getElementById('submit-status');
 
+        // Main Menu Leaderboard
+        this.mainLeaderboardBtn = document.getElementById('main-leaderboard-btn');
+        this.leaderboardModal = document.getElementById('leaderboard-modal');
+        this.modalLeaderboardContainer = document.getElementById('modal-leaderboard-container');
+        this.closeLeaderboardBtn = document.getElementById('close-leaderboard-btn');
+
         if (this.submitBtn) {
             this.submitBtn.addEventListener('click', () => this.submitScore());
+        }
+
+        if (this.mainLeaderboardBtn) {
+            this.mainLeaderboardBtn.addEventListener('click', () => {
+                this.leaderboardModal.classList.remove('hidden');
+                this.loadLeaderboard(this.modalLeaderboardContainer);
+            });
+        }
+
+        if (this.closeLeaderboardBtn) {
+            this.closeLeaderboardBtn.addEventListener('click', () => {
+                this.leaderboardModal.classList.add('hidden');
+            });
         }
     }
 
@@ -189,7 +208,7 @@ class UI {
             this.submitBtn.classList.add('hidden');
 
             // Reload table
-            this.loadLeaderboard();
+            this.loadLeaderboard(this.leaderboardContainer);
         } else {
             this.submitBtn.innerText = "TEKRAR DENE";
             this.submitBtn.disabled = false;
@@ -197,17 +216,19 @@ class UI {
         }
     }
 
-    async loadLeaderboard() {
+    async loadLeaderboard(container) {
+        if (!container) return; // Guard
+
         if (!window.Leaderboard) {
-            this.leaderboardContainer.innerHTML = "<p>Bağlantı hatası.</p>";
+            container.innerHTML = "<p>Bağlantı hatası.</p>";
             return;
         }
 
-        this.leaderboardContainer.innerHTML = "<p>Yükleniyor...</p>";
+        container.innerHTML = "<p>Yükleniyor...</p>";
         const scores = await window.Leaderboard.getTopScores(10);
 
         if (scores.length === 0) {
-            this.leaderboardContainer.innerHTML = "<p>Henüz skor yok.</p>";
+            container.innerHTML = "<p>Henüz skor yok.</p>";
             return;
         }
 
@@ -222,26 +243,31 @@ class UI {
             </tr>`;
 
         scores.forEach((s, index) => {
-            let charIcon = '👤';
-            if (s.character === 'alik') charIcon = '💨';
-            else if (s.character === 'dgkn') charIcon = '🚬';
-            else if (s.character === 'ali') charIcon = '🍝';
-            else if (s.character === 'efe') charIcon = '🥗';
-            else if (s.character === 'baho') charIcon = '🚜';
-            else if (s.character === 'thr') charIcon = '⚡';
+            // Char Image Logic
+            const charName = s.character || 'omer';
+            // Assuming getAsset is globally available or we use path directly
+            // Since getAsset is in Utils, and Utils is loaded before UI...
+            // But getAsset logic might be complex with bundles.
+            // Let's use getAsset if defined, else fallback.
+            let charSrc = `assets/${charName}.png`;
+            if (typeof getAsset === 'function') {
+                charSrc = getAsset(`assets/${charName}.png`);
+            }
+
+            const charImg = `<img src="${charSrc}" class="score-char-img" alt="${charName}">`;
 
             html += `
             <tr>
                 <td class="score-rank">${index + 1}</td>
                 <td class="score-name">${s.name}</td>
-                <td class="score-char">${charIcon}</td>
+                <td class="score-char">${charImg}</td>
                 <td>${s.wave}</td>
                 <td class="score-val">${s.score}</td>
             </tr>`;
         });
 
         html += "</table>";
-        this.leaderboardContainer.innerHTML = html;
+        container.innerHTML = html;
     }
 
     updateSelector() {
@@ -308,7 +334,7 @@ class UI {
         this.submitBtn.innerText = "SKORU KAYDET";
         this.submitStatus.classList.add('hidden');
 
-        this.loadLeaderboard();
+        this.loadLeaderboard(this.leaderboardContainer);
     }
 
     showHUD() {

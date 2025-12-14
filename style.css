@@ -166,6 +166,14 @@ input[type=range] {
     gap: 10px;
 }
 
+.score-char-img {
+    width: 30px;
+    height: 30px;
+    object-fit: contain;
+    border-radius: 5px;
+    vertical-align: middle;
+}
+
 .modal-content h3 {
     margin: 0 0 10px 0;
     font-size: 1.5rem;

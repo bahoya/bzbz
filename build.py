@@ -61,15 +61,20 @@ def main():
         print("Assets directory not found.")
 
     # 3. Embed JS
-    # Find <script src="..."></script>
-    script_pattern = re.compile(r'<script src="(.*?)"></script>')
+    # Find <script src="..."> or <script type="module" src="...">
+    script_pattern = re.compile(r'<script.*?\ssrc="(.*?)".*?></script>')
     
     def replace_js(match):
+        full_tag = match.group(0)
         js_file = match.group(1)
+        
+        is_module = 'type="module"' in full_tag or "type='module'" in full_tag
+        tag_start = '<script type="module">' if is_module else '<script>'
+        
         try:
             with open(js_file, 'r', encoding='utf-8') as f:
                 js_content = f.read()
-            return f'<script>\n{js_content}\n</script>'
+            return f'{tag_start}\n{js_content}\n</script>'
         except Exception as e:
             print(f"Error embedding JS {js_file}: {e}")
             return match.group(0)

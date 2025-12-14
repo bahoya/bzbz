@@ -1,7 +1,8 @@
 class Smoke {
-    constructor(x, y) {
+    constructor(x, y, type = 'smell') {
         this.x = x;
         this.y = y;
+        this.type = type; // 'smell' or 'cigarette'
         this.radius = 10;
         this.maxRadius = 50;
         this.life = 3; // Seconds
@@ -9,7 +10,14 @@ class Smoke {
         this.expansionRate = 20; // Radius expansion per second
         this.damagePerSecond = 10;
         this.markedForDeletion = false;
-        this.color = 'rgba(0, 255, 0, 0.5)';
+
+        if (this.type === 'cigarette') {
+            this.baseColor = '128, 128, 128'; // Gray
+        } else {
+            this.baseColor = '0, 255, 0'; // Green
+        }
+        this.color = `rgba(${this.baseColor}, 0.5)`;
+
         // Random drift
         this.vx = (Math.random() - 0.5) * 10;
         this.vy = (Math.random() - 0.5) * 10;
@@ -32,7 +40,7 @@ class Smoke {
 
         // Fade out alpha
         const alpha = (this.life / this.maxLife) * 0.5;
-        this.color = `rgba(0, 255, 0, ${alpha})`;
+        this.color = `rgba(${this.baseColor}, ${alpha})`;
     }
 
     draw(ctx) {

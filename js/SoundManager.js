@@ -19,7 +19,12 @@ class SoundManager {
             { name: 'aliolum', src: 'assets/aliolum.WAV', volume: 0.8 },
             { name: 'alikolum', src: 'assets/alikolum.WAV', volume: 1 },
             { name: 'duman', src: 'assets/duman.WAV', volume: 0.5 },
-            { name: 'thrulti', src: 'assets/thrulti.WAV', volume: 1.0 }
+            { name: 'thrulti', src: 'assets/thrulti.WAV', volume: 1.0 },
+            { name: 'ambulans', src: 'assets/ambulans.WAV', volume: 1.0 },
+            { name: 'ambulans', src: 'assets/ambulans.WAV', volume: 1.0 },
+            { name: 'kizilay', src: 'assets/kizilay.WAV', volume: 1.0 },
+            { name: 'sigara', src: 'assets/sigara.WAV', volume: 1.0 },
+            { name: 'tras', src: 'assets/tras.WAV', volume: 1.0 }
         ];
 
         soundFiles.forEach(s => {

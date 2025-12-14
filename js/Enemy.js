@@ -43,13 +43,40 @@ class Enemy {
     update(deltaTime) {
         if (!deltaTime) deltaTime = 0.016; // Fallback
 
-        const dx = this.game.player.x - this.x;
-        const dy = this.game.player.y - this.y;
+        // Decoy Targeting Logic
+        let target = this.game.player;
+        if (this.game.decoys && this.game.decoys.length > 0) {
+            // Target the first decoy (all enemies focus on it)
+            // Or find nearest? "tüm düşmanlar ona odaklanıyor" -> focus on it.
+            // If multiple decoys? Focus on the first/latest? Let's pick first for simplicity.
+            // If decoy exists, target it.
+            target = this.game.decoys[0];
+        }
+
+        // Ali Invisibility Check: If target is player and player is invisible, stop logic
+        if (target === this.game.player && this.game.isInvisible) {
+            return; // Enemies freeze? "sabit duruyorlar"
+        }
+
+        const dx = target.x - this.x;
+        const dy = target.y - this.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
 
+        // Apply Speed
+        let currentSpeed = this.speed;
+        if (this.slowTimer > 0) {
+            currentSpeed *= 0.5;
+            this.slowTimer -= deltaTime;
+        }
+
         if (distance > 0) {
-            this.x += (dx / distance) * this.speed * deltaTime;
-            this.y += (dy / distance) * this.speed * deltaTime;
+            this.x += (dx / distance) * currentSpeed * deltaTime;
+            this.y += (dy / distance) * currentSpeed * deltaTime;
+        }
+
+        // Damage Decoy Logic (Basic proximity)
+        if (this.game.decoys && this.game.decoys.includes(target) && distance < 40) {
+            target.health -= this.damage * deltaTime; // DPS against decoy
         }
 
         // Separation handled in Game.js via Grid

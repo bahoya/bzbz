@@ -77,9 +77,15 @@ class UI {
 
                     if (e.type === 'contextmenu') {
                         newKey = 'RightClick';
+                    } else if (e.type === 'mousedown') {
+                        if (e.button === 0) newKey = 'LeftClick';
+                        else if (e.button === 2) newKey = 'RightClick';
+                        else newKey = `Mouse${e.button}`;
                     } else {
                         newKey = e.key.toLowerCase();
                     }
+
+                    if (!newKey) return; // Ignore if undefined
 
                     // Validation: Uniqueness
                     for (const [act, key] of Object.entries(this.game.keyBindings)) {
@@ -89,6 +95,7 @@ class UI {
                             btn.classList.remove('waiting');
                             document.removeEventListener('keydown', handleBind);
                             document.removeEventListener('contextmenu', handleBind);
+                            document.removeEventListener('mousedown', handleBind);
                             return;
                         }
                     }
@@ -97,17 +104,22 @@ class UI {
                     this.game.keyBindings[action] = newKey;
 
                     // Update Text
-                    const displayText = newKey === 'RightClick' ? 'Sağ Tık' : newKey.toUpperCase();
+                    let displayText = newKey.toUpperCase();
+                    if (newKey === 'RightClick') displayText = 'Sağ Tık';
+                    if (newKey === 'LeftClick') displayText = 'Sol Tık';
+
                     btn.innerText = displayText;
                     btn.classList.remove('waiting');
 
                     // Remove Listeners
                     document.removeEventListener('keydown', handleBind);
                     document.removeEventListener('contextmenu', handleBind);
+                    document.removeEventListener('mousedown', handleBind);
                 };
 
                 document.addEventListener('keydown', handleBind);
                 document.addEventListener('contextmenu', handleBind);
+                document.addEventListener('mousedown', handleBind);
             });
         });
 
@@ -214,6 +226,31 @@ class UI {
             smellIcon.innerText = "⚡";
             whipName.innerText = "KLON (R)";
             whipIcon.innerText = "👥";
+        } else if (type === 'alik') {
+            smellName.innerText = "OSURUK (E)";
+            smellIcon.innerText = "💨";
+            whipName.innerText = "AMBULANS (R)";
+            whipIcon.innerText = "🚑";
+        } else if (type === 'efe') {
+            smellName.innerText = "TUZAK (E)";
+            smellIcon.innerText = "🥗";
+            whipName.innerText = "OFOEDU (R)";
+            whipIcon.innerText = "🗿";
+        } else if (type === 'baho') {
+            smellName.innerText = "KIZILAY (E)";
+            smellIcon.innerText = "🌙";
+            whipName.innerText = "TANK TİMİ (R)";
+            whipIcon.innerText = "🚜";
+        } else if (type === 'ali') {
+            smellName.innerText = "SPAGETTI (E)";
+            smellIcon.innerText = "🍝";
+            whipName.innerText = "HAYALET (R)";
+            whipIcon.innerText = "👻";
+        } else if (type === 'dgkn') {
+            smellName.innerText = "SİGARA (E)";
+            smellIcon.innerText = "🚬";
+            whipName.innerText = "TIRAŞ (R)";
+            whipIcon.innerText = "🪒";
         } else {
             // Default Omer
             smellName.innerText = "KOKU (E)";

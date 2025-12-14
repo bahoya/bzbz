@@ -17,80 +17,105 @@ const assetList = [
     'assets/thrulti.WAV', 'assets/tras.WAV', 'assets/ulti.WAV'
 ];
 
+// Global variable to prevent double initialization
+let gameStarted = false;
+
 window.addEventListener('load', () => {
     const loadingScreen = document.getElementById('loading-screen');
     const loadingFill = document.getElementById('loading-bar-fill');
     const loadingText = document.getElementById('loading-text');
+
+    // Safety check: if elements missing (e.g. single file build might have structure differences), just start
+    if (!loadingScreen || !loadingFill) {
+        if (!gameStarted) { gameStarted = true; new Game(); }
+        return;
+    }
+
     let loadedCount = 0;
     const totalAssets = assetList.length;
+
+    function startGame() {
+        if (gameStarted) return;
+        gameStarted = true;
+        // Fade out
+        loadingScreen.style.opacity = '0';
+        loadingScreen.style.transition = 'opacity 0.5s';
+        setTimeout(() => {
+            loadingScreen.style.display = 'none';
+            new Game();
+        }, 500);
+    }
 
     // Helper to update progress
     function updateProgress() {
         loadedCount++;
         const percent = Math.floor((loadedCount / totalAssets) * 100);
-        loadingFill.style.width = `${percent}%`;
-        loadingText.innerText = `${percent}%`;
+
+        if (loadingFill) loadingFill.style.width = `${percent}%`;
+        if (loadingText) loadingText.innerText = `${percent}%`;
 
         if (loadedCount >= totalAssets) {
-            setTimeout(() => {
-                loadingScreen.style.display = 'none';
-                // Initialize Game
-                const game = new Game();
-            }, 500); // Small delay for smooth finish
+            startGame();
         }
     }
 
+    // Global Failsafe: Force start after 7 seconds if stuck
+    setTimeout(() => {
+        if (!gameStarted) {
+            console.warn("Loading timed out, forcing game start.");
+            startGame();
+        }
+    }, 7000);
+
     // Start Loading
     if (totalAssets === 0) {
-        loadingScreen.style.display = 'none';
-        new Game();
+        startGame();
     } else {
         assetList.forEach(src => {
             const ext = src.split('.').pop().toLowerCase();
             let asset;
+            const absoluteSrc = getAsset(src);
+
+            // Define handleLoad once to avoid duplication
+            let handled = false;
+            const onLoaded = () => {
+                if (!handled) {
+                    handled = true;
+                    updateProgress();
+                    // Clean up listeners? Not strictly necessary for oneshot loading
+                }
+            };
 
             if (['png', 'jpg', 'jpeg'].includes(ext)) {
                 asset = new Image();
-                asset.onload = updateProgress;
+                asset.onload = onLoaded;
                 asset.onerror = () => {
                     console.error(`Failed to load image: ${src}`);
-                    updateProgress(); // Continue anyway
+                    onLoaded();
                 };
-                asset.src = getAsset(src); // Handle base64 logic if any
+                asset.src = absoluteSrc;
             } else if (['wav', 'mp3'].includes(ext)) {
-                // For audio, we can use fetch/Audio. Audio is simpler but sometimes doesn't fire events if cached.
-                // We'll use new Audio().
                 asset = new Audio();
-                // 'canplaythrough' is good, but 'loadeddata' might be faster for "loaded enough".
-                // However, for pure preloading, just creating it might not trigger download unless we play?
-                // Actually 'preload="auto"' logic.
-                // Better approach for reliably tracking: fetch.
 
-                // Let's stick to Audio for simplicity, but attach multiple events.
-                asset.src = getAsset(src);
-                asset.preload = 'auto'; // Force load
-
-                // Fallback timeout in case event never fires (common issue)
-                let handled = false;
-                const onLoaded = () => {
-                    if (!handled) {
-                        handled = true;
-                        updateProgress();
-                    }
-                };
-
-                asset.addEventListener('canplaythrough', onLoaded);
+                // Audio events can be tricky. We use multiple just in case.
+                // 'loadeddata' is usually enough for "it exists and we can play".
+                asset.addEventListener('loadeddata', onLoaded);
                 asset.addEventListener('error', () => {
                     console.error(`Failed to load sound: ${src}`);
                     onLoaded();
                 });
 
-                // 3s timeout per asset to prevent hanging
-                setTimeout(onLoaded, 3000);
+                // Some browsers won't load audio until user interaction unless we force it?
+                // But we just need metadata or first frame.
+                asset.src = absoluteSrc;
+                asset.preload = 'auto'; // Force buffer
             } else {
-                // Unknown type?
-                updateProgress();
+                // Unknown type, just skip
+                onLoaded();
             }
+
+            // Individual Timeout (Backup)
+            setTimeout(onLoaded, 2000);
         });
     }
 });

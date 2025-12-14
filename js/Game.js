@@ -632,8 +632,8 @@ class Game {
             y: this.player.y,
             width: 80,
             height: 80,
-            health: 1100, // Reduced from 5000 to 1100
-            maxHealth: 1100,
+            health: 400, // Reduced from 5000 to 500
+            maxHealth: 400,
             timer: 15,
             image: new Image()
         });

@@ -147,6 +147,101 @@ class UI {
         this.whipCard = document.getElementById('skill-whip');
         this.smellCost = document.getElementById('cost-smell');
         this.whipCost = document.getElementById('cost-whip');
+
+        // Leaderboard Elements
+        this.nameInput = document.getElementById('player-name-input');
+        this.submitBtn = document.getElementById('submit-score-btn');
+        this.leaderboardContainer = document.getElementById('leaderboard-table-container');
+        this.submitStatus = document.getElementById('submit-status');
+
+        if (this.submitBtn) {
+            this.submitBtn.addEventListener('click', () => this.submitScore());
+        }
+    }
+
+    async submitScore() {
+        const name = this.nameInput.value.trim();
+        if (!name) {
+            alert("Lütfen bir isim girin!");
+            return;
+        }
+
+        if (!window.Leaderboard) {
+            alert("Leaderboard servisi yüklenemedi!");
+            return;
+        }
+
+        this.submitBtn.disabled = true;
+        this.submitBtn.innerText = "KAYDEDİLİYOR...";
+
+        const success = await window.Leaderboard.submitScore(
+            name,
+            this.game.score,
+            this.game.wave,
+            this.game.selectedCharacter || 'omer'
+        );
+
+        if (success) {
+            this.submitStatus.innerText = "Skor Kaydedildi! ✅";
+            this.submitStatus.classList.remove('hidden');
+            this.submitStatus.style.color = '#2ecc71';
+            this.nameInput.classList.add('hidden');
+            this.submitBtn.classList.add('hidden');
+
+            // Reload table
+            this.loadLeaderboard();
+        } else {
+            this.submitBtn.innerText = "TEKRAR DENE";
+            this.submitBtn.disabled = false;
+            alert("Hata oluştu. İnternet bağlantını kontrol et.");
+        }
+    }
+
+    async loadLeaderboard() {
+        if (!window.Leaderboard) {
+            this.leaderboardContainer.innerHTML = "<p>Bağlantı hatası.</p>";
+            return;
+        }
+
+        this.leaderboardContainer.innerHTML = "<p>Yükleniyor...</p>";
+        const scores = await window.Leaderboard.getTopScores(10);
+
+        if (scores.length === 0) {
+            this.leaderboardContainer.innerHTML = "<p>Henüz skor yok.</p>";
+            return;
+        }
+
+        let html = `
+        <table class="leaderboard-table">
+            <tr>
+                <th>#</th>
+                <th>İsim</th>
+                <th>Karakter</th>
+                <th>Dalga</th>
+                <th>Puan</th>
+            </tr>`;
+
+        scores.forEach((s, index) => {
+            let charIcon = '👤';
+            if (s.character === 'alik') charIcon = '💨';
+            else if (s.character === 'dgkn') charIcon = '🚬';
+            else if (s.character === 'ali') charIcon = '🍝';
+            else if (s.character === 'efe') charIcon = '🥗';
+            else if (s.character === 'baho') charIcon = '🚜';
+            else if (s.character === 'thr') charIcon = '⚡';
+
+            html += `
+            <tr>
+                <td class="score-rank">${index + 1}</td>
+                <td class="score-name">${s.name}</td>
+                <td class="score-char">${charIcon}</td>
+                <td>${s.wave}</td>
+                <td class="score-val">${s.score}</td>
+            </tr>`;
+        });
+
+        html += "</table>";
+        this.leaderboardContainer.innerHTML = html;
     }
 
     updateSelector() {
@@ -204,6 +299,16 @@ class UI {
         this.finalScoreEl.innerText = `Puan: ${this.game.score}`;
         this.finalWaveEl.innerText = `Dalga: ${this.game.wave}`;
         document.body.classList.add('in-menu');
+
+        // Reset and Load Leaderboard
+        this.nameInput.value = "";
+        this.nameInput.classList.remove('hidden');
+        this.submitBtn.classList.remove('hidden');
+        this.submitBtn.disabled = false;
+        this.submitBtn.innerText = "SKORU KAYDET";
+        this.submitStatus.classList.add('hidden');
+
+        this.loadLeaderboard();
     }
 
     showHUD() {

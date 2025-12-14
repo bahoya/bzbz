@@ -182,7 +182,7 @@ class Game {
         this.smokes = []; // Smoke particles
         this.score = 0;
         this.wave = 1;
-        this.waveTimer = 30;
+        this.waveTimer = 10; // First wave 10 seconds (User request)
         this.spawnTimer = 0;
         this.spawnInterval = 2000;
         this.gameState = 'PLAYING';
@@ -437,7 +437,7 @@ class Game {
                 this.enemies.forEach(e => {
                     const d = Math.hypot(e.x + e.width / 2 - cloud.x, e.y + e.height / 2 - cloud.y);
                     if (d < cloud.radius + e.radius) {
-                        e.health -= 10; // 2x Oncu Damage
+                        e.health -= 20; // +40% (was 10)
                         if (e.health <= 0) e.markedForDeletion = true; // Handle drop?
                     }
                 });
@@ -630,11 +630,11 @@ class Game {
         this.decoys.push({
             x: this.player.x,
             y: this.player.y,
-            width: 80,
-            height: 80,
-            health: 400, // Reduced from 5000 to 500
-            maxHealth: 400,
-            timer: 15,
+            width: 120,
+            height: 120,
+            health: 200, // Reduced from 5000 to 500
+            maxHealth: 200,
+            timer: 10,
             image: new Image()
         });
         this.decoys[this.decoys.length - 1].image.src = getAsset('assets/ofoedu.png');
@@ -840,7 +840,12 @@ class Game {
         this.soundManager.play('throw');
         this.aliECooldown = 0.5; // 0.5s local cooldown
 
-        const directions = [0, Math.PI / 2, Math.PI, 3 * Math.PI / 2];
+        // Updated for 6 spaghettis (0, 60, 120, 180, 240, 300)
+        const directions = [];
+        for (let i = 0; i < 6; i++) {
+            directions.push(i * (Math.PI / 3)); // 60 degrees in radians
+        }
+
         directions.forEach(angle => {
             this.spaghettis.push({
                 x: this.player.x + this.player.width / 2,
@@ -892,9 +897,8 @@ class Game {
             this.enemies.forEach(e => {
                 const d = Math.hypot(e.x + e.width / 2 - spag.x, e.y + e.height / 2 - spag.y);
                 if (d < 30 + e.radius) {
-                    // Buffed: 3x Oncu (Oncu ~20). 
-                    // To deal ~60 damage per pass (approx 0.3s), we need ~180-200 DPS.
-                    e.health -= 180 * deltaTime;
+                    // Buffed: 20% increase on top of 180 -> 216
+                    e.health -= 216 * deltaTime;
                     if (e.health <= 0) e.markedForDeletion = true;
                 }
             });
@@ -930,10 +934,11 @@ class Game {
         // Spawn smoke cloud
         for (let i = 0; i < 15; i++) {
             const angle = Math.random() * Math.PI * 2;
-            const dist = Math.random() * 50;
+            const dist = Math.random() * 120; // Increased spread (was 80)
             const sx = this.player.x + this.player.width / 2 + Math.cos(angle) * dist;
             const sy = this.player.y + this.player.height / 2 + Math.sin(angle) * dist;
-            this.smokes.push(new Smoke(sx, sy, 'cigarette'));
+            // Pass 'this.player' as owner so smoke follows
+            this.smokes.push(new Smoke(sx, sy, 'cigarette', this.player));
         }
     }
 
@@ -946,7 +951,7 @@ class Game {
             y: this.player.y,
             width: 80,
             height: 80,
-            speed: 400,
+            speed: 300,
             image: new Image()
         };
         this.trasEntity.image.src = getAsset('assets/tras.png');
@@ -1012,7 +1017,7 @@ class Game {
 
     drawTras(ctx) {
         if (this.trasActive && this.trasEntity && this.trasEntity.image.complete) {
-            const maxDim = 80;
+            const maxDim = 60;
             const ratio = this.trasEntity.image.naturalWidth / this.trasEntity.image.naturalHeight;
             let drawW = maxDim;
             let drawH = maxDim;
@@ -1051,7 +1056,13 @@ class Game {
         this.waveTimer -= deltaTime / 1000;
         if (this.waveTimer <= 0) {
             this.wave++;
-            this.waveTimer = 20 + (this.wave * 3); // Shortened duration
+
+            // Custom Wave Durations
+            if (this.wave === 2) {
+                this.waveTimer = 15; // Wave 2: 15 seconds
+            } else {
+                this.waveTimer = 20 + (this.wave * 3); // Default scaling for others
+            }
 
             // Enemies persist now
 
@@ -1062,10 +1073,15 @@ class Game {
         this.spawnTimer += deltaTime;
         const enemiesToSpawn = 5 * Math.pow(2, this.wave - 1);
 
-        // Spawn faster to accommodate higher counts
-        // Calculate approx interval needed: 40s / 100 enemies = 400ms.
-        // 40s / 1000 enemies = 40ms.
-        const waveDuration = 30 + (this.wave * 5);
+        // Spawn faster to accommodate higher counts in shorter times
+        let waveDuration;
+        if (this.wave === 1) waveDuration = 10;
+        else if (this.wave === 2) waveDuration = 15;
+        else waveDuration = 20 + (this.wave * 3);
+
+        // Ensure initial wave timer matches custom logic if just started (handled in constructor?)
+        // In constructor loop(0) starts. waveTimer should be init in constructor.
+
         const neededRate = (waveDuration * 1000) / enemiesToSpawn;
         const currentSpawnRate = Math.max(30, neededRate * 0.8); // 0.8 to be safe
 
@@ -1201,7 +1217,9 @@ class Game {
                     const eCy = entity.y + entity.height / 2;
                     const dist = Math.hypot(smoke.x - eCx, smoke.y - eCy);
                     if (dist < smoke.radius + entity.radius) {
-                        entity.health -= 13 * (deltaTime / 1000); // DOT Increased by 50% more (was 9)
+                        // Use dynamic damage from Smoke instance, default to 13 if missing
+                        const dps = smoke.damagePerSecond || 13;
+                        entity.health -= dps * (deltaTime / 1000);
                         if (entity.health <= 0 && !entity.markedForDeletion) {
                             entity.markedForDeletion = true;
                             this.score += 10;

@@ -144,10 +144,23 @@
             <h1>Oyun Bitti</h1>
             <p id="final-score">Puan: 0</p>
             <p id="final-wave">Dalga: 1</p>
-            <button id="restart-btn">Yeniden Başla</button>
+
+            <div id="leaderboard-section">
+                <input type="text" id="player-name-input" placeholder="İsmini Gir" maxlength="15">
+                <button id="submit-score-btn" class="primary-btn">SKORU KAYDET</button>
+                <p id="submit-status" class="hidden"></p>
+
+                <h3>EN İYİLER 🏆</h3>
+                <div id="leaderboard-table-container">
+                    <p>Yükleniyor...</p>
+                </div>
+            </div>
+
+            <button id="restart-btn" class="secondary-btn">Yeniden Başla</button>
         </div>
     </div>
 
+    <script type="module" src="js/Leaderboard.js"></script>
     <script src="js/Utils.js"></script>
     <script src="js/SoundManager.js"></script>
     <script src="js/Drop.js"></script>
